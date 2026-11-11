@@ -1,0 +1,26 @@
+name: Build Charybdis firmware
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Mark repo safe
+        run: git config --global --add safe.directory '*'
+
+      - name: Build
+        run: make bastardkb/charybdis/4x6/v2/elitec:vial
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charybdis-firmware
+          path: "*.hex"
