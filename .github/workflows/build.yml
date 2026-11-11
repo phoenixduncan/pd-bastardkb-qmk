@@ -6,26 +6,27 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container: ghcr.io/qmk/qmk_cli
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 1
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Mark repo safe
+        run: git config --global --add safe.directory '*'
 
-      - name: Install build tools
+      - name: Set up Python 3.11
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-avr avr-libc binutils-avr
-          python -m pip install qmk
-          python -m pip install -r requirements.txt
+          python3 -m pip install --break-system-packages uv || true
+          uv venv --python 3.11 /tmp/py311
+          uv pip install --python /tmp/py311/bin/python qmk -r requirements.txt
 
       - name: Build
-        run: make bastardkb/charybdis/4x6/v2/elitec:vial
+        run: |
+          export PATH=/tmp/py311/bin:$PATH
+          make bastardkb/charybdis/4x6/v2/elitec:vial
 
       - uses: actions/upload-artifact@v4
         with:
